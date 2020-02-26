@@ -1,0 +1,116 @@
+<html>
+<head>
+    <title>Index</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <script type="text/javascript" src="vue.js"></script>
+    <script src="axios.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="jquery-3.3.1.js"></script>
+</head>
+<body>
+<div id="app">
+    <div>
+        <div class="form-group row">
+            <label for="staticEmail" class="col-sm-2 col-form-label">id</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" id="staticEmail" :value="user.id">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="inputUserName" class="col-sm-2 col-form-label">用户名</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="inputUserName" :value="user.username">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">密码</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="inputPassword" :value="user.password">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="inputBirthday" class="col-sm-2 col-form-label">生日</label>
+            <div class="col-sm-10">
+                <input type="date" class="form-control" id="inputBirthday" :value="user.birthday">
+            </div>
+        </div>
+        <button class="btn btn-primary" @click="modifyUser()">提交</button>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    let host = "http://localhost:8080";
+
+    let app = new Vue({
+        el: "#app",
+        data: {
+            findAccountUrl: host + "/user/findUserAndAccount.action",
+            modifyUserUrl: host + "/user/modifyUserUrl.action",
+            user:
+                {
+                    id: 1, username: "lucy", password: "123", birthday: 1544544000000, accountList: []
+                }
+        },
+        methods: {
+            modifyUser() {
+                let username = $("#inputUserName").val();
+                let password = $("#inputPassword").val();
+                let birthday = $("#inputBirthday").val();
+                console.log("birthday is " + birthday);
+                let postData = new URLSearchParams();
+                postData.append("id", this.user.id);
+                postData.append("username", username);
+                postData.append("password", password);
+                postData.append("birthday", birthday);
+                axios.post(this.modifyUserUrl, postData, {
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                }).then(function (response) {
+                    console.log(response);
+                    if (response.data.code != null && response.data.code === 0) {
+                        location.href = host + "/index.html";
+                    } else {
+                        alert("修改失败，请检查当前网络")
+                    }
+                    console.log("userList is " + JSON.stringify(app.user));
+                }).catch(function (err) {
+                    console.log(err);
+                    alert("获取数据失败");
+                });
+            }
+        },
+        created() {
+            console.log("created!!!");
+            let postData = new URLSearchParams();
+            console.log("simon uid is " + getQueryVariable("uid"));
+            postData.append("uid", getQueryVariable("uid"));
+
+            axios.post(this.findAccountUrl, postData, {
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            }).then(function (response) {
+                console.log(response);
+                app.user = response.data.data;
+                console.log("userList is " + JSON.stringify(app.user));
+            }).catch(function (err) {
+                console.log(err);
+                alert("获取数据失败");
+            });
+        }
+    });
+
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            if (pair[0] == variable) {
+                return pair[1];
+            }
+        }
+        return (false);
+    }
+</script>
+</html>
